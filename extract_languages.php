@@ -9,10 +9,10 @@ try {
         throw new Exception("No se pudo leer el archivo.");
     }
     
-    // Expresión regular para capturar nombres de lenguajes
+    // Expresión regular
     $pattern = '/^[A-Za-z0-9_\-\.+\/*&|~`<>?!@#\^()\[\]{}]+(?:\s*\([^)]*\))?\s*-/m';
     
-    // Coincidencias en el archivo
+    // Coincidencias
     preg_match_all($pattern, $fileContents, $matches);
     
     $languages = [];

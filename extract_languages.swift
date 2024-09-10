@@ -7,22 +7,34 @@ do {
     // Lee el contenido del archivo como una cadena
     let fileContents = try String(contentsOfFile: filePath, encoding: .utf8)
     
-    // Expresión regular mejorada para capturar líneas que contienen lenguajes de programación
-    // Consideramos que los lenguajes pueden tener letras, números y algunos caracteres especiales
-    let regex = try NSRegularExpression(pattern: "^[A-Za-z0-9#+*.-]+(?:\\s*\\([^\\)]+\\))?\\s*-", options: .anchorsMatchLines)
+    // Expresión regular mejorada para capturar nombres de lenguajes válidos
+    let regex = try NSRegularExpression(pattern: "^[A-Za-z0-9_\\-\\.\\+\\*/&|]+(?:\\s*\\([^\\)]+\\))?\\s*-", options: .anchorsMatchLines)
     
     // Encuentra todas las coincidencias en el archivo
     let matches = regex.matches(in: fileContents, options: [], range: NSRange(location: 0, length: fileContents.utf16.count))
     
     var languages = [String]()
     
-    // Extrae los nombres de lenguajes coincidentes y los añade a la lista, evitando duplicados
+    // Extrae los nombres de lenguajes coincidentes y los añade a la lista, evitando duplicados y filtrando palabras no deseadas
     for match in matches {
         if let range = Range(match.range, in: fileContents) {
             let languageName = String(fileContents[range])
                 .components(separatedBy: " -").first!  // Elimina la descripción que sigue al nombre del lenguaje
                 .trimmingCharacters(in: .whitespacesAndNewlines)  // Limpia espacios en blanco innecesarios
-            if !languages.contains(languageName) {
+            
+            // Filtra nombres no deseados (ajustar patrones según sea necesario)
+            let unwantedPatterns = ["^p\\.", "^pp\\.", "^[0-9]", "^[a-z]{1,2}$", "^x86", "^[A-Za-z]$"]
+            var isValid = true
+            for pattern in unwantedPatterns {
+                let invalidRegex = try NSRegularExpression(pattern: pattern, options: [])
+                if invalidRegex.firstMatch(in: languageName, options: [], range: NSRange(location: 0, length: languageName.utf16.count)) != nil {
+                    isValid = false
+                    break
+                }
+            }
+            
+            // Agregar solo lenguajes válidos y evitar duplicados
+            if isValid && !languages.contains(languageName) {
                 languages.append(languageName)
             }
         }
@@ -43,4 +55,3 @@ do {
     // Manejo de errores al leer el archivo
     print("Error al leer el archivo: \(error.localizedDescription)")
 }
-

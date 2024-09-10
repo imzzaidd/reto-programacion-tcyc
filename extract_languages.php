@@ -1,32 +1,58 @@
 <?php
+$filePath = 'LANGUAGE.TXT';
 
-function extractLanguages($filePath) {
-    $languages = [];
-    $regex = "/^[A-Za-z][A-Za-z0-9+\-\s]*$/";
+try {
+    // Lee el contenido del archivo como una cadena
+    $fileContents = file_get_contents($filePath);
     
-    if (($file = fopen($filePath, "r")) !== FALSE) {
-        while (($line = fgets($file)) !== FALSE) {
-            $line = trim($line);
-            if (preg_match($regex, $line) && strlen($line) > 1 && strlen($line) < 40) {
-                $languages[] = $line;
+    if ($fileContents === false) {
+        throw new Exception("No se pudo leer el archivo.");
+    }
+    
+    // Expresión regular para capturar nombres de lenguajes
+    $pattern = '/^[A-Za-z0-9_\-\.+\/*&|~`<>?!@#\^()\[\]{}]+(?:\s*\([^)]*\))?\s*-/m';
+    
+    // Coincidencias en el archivo
+    preg_match_all($pattern, $fileContents, $matches);
+    
+    $languages = [];
+    
+    // Extrae los nombres de lenguajes y aplica filtros
+    foreach ($matches[0] as $match) {
+        $languageName = trim(explode(' -', $match)[0]);
+        
+        // Filtra nombres no deseados
+        $unwantedPatterns = ['/^\s*$/', '/^\d{2,}[^a-zA-Z\d]/', '/^[A-Za-z]$/'];
+        $isValid = true;
+        
+        foreach ($unwantedPatterns as $pattern) {
+            if (preg_match($pattern, $languageName)) {
+                $isValid = false;
+                break;
             }
         }
-        fclose($file);
+        
+        // Lenguajes válidos y evita duplicados
+        if ($isValid && !in_array($languageName, $languages)) {
+            $languages[] = $languageName;
+        }
     }
     
-    // Sort the languages alphabetically
+    // Ordena en orden alfabético
     sort($languages);
-
-    // Print the total number of languages and the names
-    echo "Total lenguajes: " . count($languages) . "\n";
+    
+    // Imprime en orden alfabético
     foreach ($languages as $language) {
-        echo $language . "\n";
+        echo $language . PHP_EOL;
     }
+    
+    // Imprime el total de lenguajes encontrados
+    echo "\nTotal de lenguajes encontrados: " . count($languages) . PHP_EOL;
+    
+} catch (Exception $e) {
+    // Manejo de errores
+    echo "Error al leer el archivo: " . $e->getMessage() . PHP_EOL;
 }
-
-// Usage
-$filePath = "LANGUAGE.TXT";
-extractLanguages($filePath);
 
 ?>
 

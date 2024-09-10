@@ -7,8 +7,8 @@ do {
     // Lee el contenido del archivo como una cadena
     let fileContents = try String(contentsOfFile: filePath, encoding: .utf8)
     
-    // Expresión regular mejorada para capturar nombres de lenguajes válidos
-    let regex = try NSRegularExpression(pattern: "^[A-Za-z0-9_\\-\\.\\+\\*/&|]+(?:\\s*\\([^\\)]+\\))?\\s*-", options: .anchorsMatchLines)
+    // Expresión regular ampliada para capturar una gama más amplia de nombres de lenguajes
+    let regex = try NSRegularExpression(pattern: "^[A-Za-z0-9_\\-\\.\\+\\*/&|~`<>?!@]+(?:\\s*\\([^\\)]+\\))?\\s*-", options: .anchorsMatchLines)
     
     // Encuentra todas las coincidencias en el archivo
     let matches = regex.matches(in: fileContents, options: [], range: NSRange(location: 0, length: fileContents.utf16.count))
@@ -23,7 +23,7 @@ do {
                 .trimmingCharacters(in: .whitespacesAndNewlines)  // Limpia espacios en blanco innecesarios
             
             // Filtra nombres no deseados (ajustar patrones según sea necesario)
-            let unwantedPatterns = ["^p\\.", "^pp\\.", "^[0-9]", "^[a-z]{1,2}$", "^x86", "^[A-Za-z]$"]
+            let unwantedPatterns = ["^p\\.", "^pp\\.", "^[0-9]", "^[a-z]{1,2}$", "^x86", "^[A-Za-z]$", "^\\s*$"]
             var isValid = true
             for pattern in unwantedPatterns {
                 let invalidRegex = try NSRegularExpression(pattern: pattern, options: [])

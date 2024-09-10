@@ -1,35 +1,49 @@
 import Foundation
 
-func extractLanguages(filePath: String) {
-    var languages: [String] = []
-    let regex = try! NSRegularExpression(pattern: "^[A-Za-z][A-Za-z0-9+\\-\\s]*$", options: [])
+// Ruta al archivo .txt
+let filePath = "LANGUAGE.TXT"
+
+do {
+    // Lee el contenido del archivo como una cadena
+    let fileContents = try String(contentsOfFile: filePath, encoding: .utf8)
     
-    if let fileHandle = FileHandle(forReadingAtPath: filePath) {
-        let data = fileHandle.readDataToEndOfFile()
-        if let content = String(data: data, encoding: .utf8) {
-            let lines = content.components(separatedBy: .newlines)
-            for line in lines {
-                let trimmedLine = line.trimmingCharacters(in: .whitespacesAndNewlines)
-                if regex.firstMatch(in: trimmedLine, options: [], range: NSRange(location: 0, length: trimmedLine.utf16.count)) != nil {
-                    if trimmedLine.count > 1 && trimmedLine.count < 40 {
-                        languages.append(trimmedLine)
-                    }
-                }
+    // Divide el contenido en líneas
+    let lines = fileContents.components(separatedBy: .newlines)
+    
+    var languages = [String]()
+    
+    // Bandera para verificar cuándo comenzar a capturar nombres de lenguajes
+    var capturingLanguages = false
+    
+    for line in lines {
+        // Detecta cuando empieza la lista de lenguajes (esto depende de cómo está estructurado el archivo)
+        if line.contains("2.PAK") { // Aquí es donde detectamos el inicio de los lenguajes
+            capturingLanguages = true
+        }
+        
+        // Comienza a capturar nombres de lenguajes
+        if capturingLanguages {
+            // Intenta detectar si la línea contiene el nombre de un lenguaje
+            // Puedes ajustar esto según el formato específico del archivo
+            if let languageName = line.components(separatedBy: " - ").first {
+                languages.append(languageName)
+            }
+            
+            // Detecta cuándo termina la lista de lenguajes (si es necesario)
+            if line.contains("AXIS") { // Ejemplo: cuando termina la lista
+                break
             }
         }
-        fileHandle.closeFile()
     }
-
-    // Sort the languages alphabetically
-    languages.sort()
-
-    // Print the total number of languages and the names
-    print("Total lenguajes: \(languages.count)")
+    
+    // Imprime todos los lenguajes capturados
     for language in languages {
         print(language)
     }
+    
+    print("Total de lenguajes encontrados: \(languages.count)")
+    
+} catch {
+    // En caso de error al leer el archivo
+    print("Error al leer el archivo: \(error.localizedDescription)")
 }
-
-// Usage
-let filePath = "LANGUAGE.TXT"
-extractLanguages(filePath: filePath)

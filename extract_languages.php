@@ -2,26 +2,23 @@
 $filePath = 'LANGUAGE.TXT';
 
 try {
-    // Lee el contenido del archivo como una cadena
+
     $fileContents = file_get_contents($filePath);
-    
     if ($fileContents === false) {
         throw new Exception("No se pudo leer el archivo.");
     }
-    
     // Expresión regular
     $pattern = '/^[A-Za-z0-9_\-\.+\/*&|~`<>?!@#\^()\[\]{}]+(?:\s*\([^)]*\))?\s*-/m';
     
     // Coincidencias
     preg_match_all($pattern, $fileContents, $matches);
-    
     $languages = [];
-    
+
     // Extrae los nombres de lenguajes y aplica filtros
     foreach ($matches[0] as $match) {
         $languageName = trim(explode(' -', $match)[0]);
         
-        // Filtra nombres no deseados
+        // 1
         $unwantedPatterns = ['/^\s*$/', '/^\d{2,}[^a-zA-Z\d]/', '/^[A-Za-z]$/'];
         $isValid = true;
         
@@ -32,13 +29,13 @@ try {
             }
         }
         
-        // Lenguajes válidos y evita duplicados
+        // 2
         if ($isValid && !in_array($languageName, $languages)) {
             $languages[] = $languageName;
         }
     }
     
-    // Ordena en orden alfabético
+    //Orden alfabético
     sort($languages);
     
     // Imprime en orden alfabético
@@ -50,7 +47,7 @@ try {
     echo "\nTotal de lenguajes encontrados: " . count($languages) . PHP_EOL;
     
 } catch (Exception $e) {
-    // Manejo de errores
+    //Excepción
     echo "Error al leer el archivo: " . $e->getMessage() . PHP_EOL;
 }
 

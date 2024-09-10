@@ -1,35 +1,46 @@
 import Foundation
+let filePath = "LANGUAGE.TXT"
 
-func extractLanguages(filePath: String) {
-    var languages: [String] = []
-    let regex = try! NSRegularExpression(pattern: "^[A-Za-z][A-Za-z0-9+\\-\\s]*$", options: [])
+do {
+    let fileContents = try String(contentsOfFile: filePath, encoding: .utf8)
+    let regex = try NSRegularExpression(pattern: "^[A-Za-z0-9_\\-\\.\\+\\*/&|~`<>?!@#\\^\\(\\)\\[\\]{}]+(?:\\s*\\([^\\)]+\\))?\\s*-", options: .anchorsMatchLines)
     
-    if let fileHandle = FileHandle(forReadingAtPath: filePath) {
-        let data = fileHandle.readDataToEndOfFile()
-        if let content = String(data: data, encoding: .utf8) {
-            let lines = content.components(separatedBy: .newlines)
-            for line in lines {
-                let trimmedLine = line.trimmingCharacters(in: .whitespacesAndNewlines)
-                if regex.firstMatch(in: trimmedLine, options: [], range: NSRange(location: 0, length: trimmedLine.utf16.count)) != nil {
-                    if trimmedLine.count > 1 && trimmedLine.count < 40 {
-                        languages.append(trimmedLine)
-                    }
+    //Coincidencias en el archivo
+    let matches = regex.matches(in: fileContents, options: [], range: NSRange(location: 0, length: fileContents.utf16.count))
+    var languages = [String]()
+    
+    // Extrae los nombres de lenguajes 
+    for match in matches {
+        if let range = Range(match.range, in: fileContents) {
+            let languageName = String(fileContents[range])
+                .components(separatedBy: " -").first!  // Elimina la descripción que sigue al nombre del lenguaje
+                .trimmingCharacters(in: .whitespacesAndNewlines)  // Limpia espacios en blanco innecesarios
+            
+            // Filtra nombres no deseados
+            let unwantedPatterns = ["^p\\.", "^pp\\.", "^[0-9]", "^[a-z]{1,2}$", "^x86", "^[A-Za-z]$", "^\\s*$", "^\\d{2,}[^a-zA-Z\\d]", "^(?:\\s*\\([^\\)]+\\))?$"]
+            var isValid = true
+            for pattern in unwantedPatterns {
+                let invalidRegex = try NSRegularExpression(pattern: pattern, options: [])
+                if invalidRegex.firstMatch(in: languageName, options: [], range: NSRange(location: 0, length: languageName.utf16.count)) != nil {
+                    isValid = false
+                    break
                 }
             }
+            // Agregar solo lenguajes válidos y evitar duplicados
+            if isValid && !languages.contains(languageName) {
+                languages.append(languageName)
+            }
         }
-        fileHandle.closeFile()
     }
-
-    // Sort the languages alphabetically
+    
+    // Orden e impresión de datos
     languages.sort()
-
-    // Print the total number of languages and the names
-    print("Total lenguajes: \(languages.count)")
     for language in languages {
         print(language)
     }
+    print("\nTotal de lenguajes encontrados: \(languages.count)")
+    
+} catch {
+    // Excepciones
+    print("Error al leer el archivo: \(error.localizedDescription)")
 }
-
-// Usage
-let filePath = "LANGUAGE.TXT"
-extractLanguages(filePath: filePath)
